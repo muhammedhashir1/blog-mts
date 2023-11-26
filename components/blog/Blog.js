@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const Blog = () => {
   const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
@@ -19,6 +20,8 @@ const Blog = () => {
       setPosts(fetchedPosts);
     } catch (error) {
       console.error("Error fetching posts:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -36,17 +39,32 @@ const Blog = () => {
   return (
     <div className="container mx-auto mt-8">
       <ToastContainer />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {posts.map((post) => (
-          <div key={post.id} className="relative p-6 rounded-md border border-black">
-            <button className="absolute top-0 right-0 p-2 focus:outline-none" onClick={() => handleDelete(post.id)}>
-              <MdDelete size={20} />
-            </button>
-            <h2 className="text-xl text-blue-700 font-semibold mb-2">{post.title}</h2>
-            <p className="text-black">{post.body}</p>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-screen">
+          <div className="loader">
+            Loading...
+            <span className="animate-ellipsis">...</span>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {posts.map((post) => (
+            <div
+              key={post.id}
+              className="relative p-6 rounded-md border border-black hover:shadow-lg transition duration-300 ease-in-out"
+            >
+              <button className="absolute top-0 right-0 p-2 focus:outline-none" onClick={() => handleDelete(post.id)}>
+                <MdDelete size={20} />
+              </button>
+              <h2 className="text-xl text-blue-700 font-semibold mb-2 hover:text-blue-800 transition duration-300">
+                {post.title}
+              </h2>
+              <p className="text-black">{post.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
