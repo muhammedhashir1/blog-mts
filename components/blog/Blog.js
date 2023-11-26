@@ -1,13 +1,17 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { MdDelete, MdEdit } from "react-icons/md";
+import { FaRegSave } from "react-icons/fa";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { MdDelete } from "react-icons/md";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Blog = () => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedBody, setEditedBody] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -36,6 +40,34 @@ const Blog = () => {
     }
   };
 
+  const handleEdit = (postId) => {
+    const postToEdit = posts.find((post) => post.id === postId);
+    setEditingPostId(postId);
+    setEditedTitle(postToEdit.title);
+    setEditedBody(postToEdit.body);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      await axios.put(`https://jsonplaceholder.typicode.com/posts/${editingPostId}`, {
+        title: editedTitle,
+        body: editedBody,
+      });
+      // Update the edited post in the state
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => (post.id === editingPostId ? { ...post, title: editedTitle, body: editedBody } : post))
+      );
+      // Reset editing state
+      setEditingPostId(null);
+      setEditedTitle("");
+      setEditedBody("");
+      toast.success("Post edited successfully!");
+    } catch (error) {
+      console.error(`Error editing post with ID ${editingPostId}:`, error);
+      toast.error("Failed to edit post.");
+    }
+  };
+
   return (
     <div className="container mx-auto mt-8">
       <ToastContainer />
@@ -54,13 +86,50 @@ const Blog = () => {
               key={post.id}
               className="relative p-6 rounded-md border border-black hover:shadow-lg transition duration-300 ease-in-out"
             >
-              <button className="absolute top-0 right-0 p-2 focus:outline-none" onClick={() => handleDelete(post.id)}>
-                <MdDelete size={20} />
-              </button>
-              <h2 className="text-xl text-blue-700 font-semibold mb-2 hover:text-blue-800 transition duration-300">
-                {post.title}
-              </h2>
-              <p className="text-black">{post.body}</p>
+              <div className="flex items-center justify-end mb-2">
+                {/* Edit Icon */}
+                <button
+                  className="p-2 mr-2 focus:outline-none"
+                  onClick={() => handleEdit(post.id)}
+                  disabled={editingPostId !== null}
+                >
+                  <MdEdit size={20} />
+                </button>
+                {/* Delete Icon */}
+                <button className="p-2 focus:outline-none" onClick={() => handleDelete(post.id)}>
+                  <MdDelete size={20} />
+                </button>
+              </div>
+              {editingPostId === post.id ? (
+                // Edit Mode
+                <div>
+                  <input
+                    type="text"
+                    value={editedTitle}
+                    onChange={(e) => setEditedTitle(e.target.value)}
+                    className="mb-2 px-2 py-1 border rounded"
+                    placeholder="Enter new title"
+                  />
+                  <textarea
+                    value={editedBody}
+                    onChange={(e) => setEditedBody(e.target.value)}
+                    className="mb-2 px-2 py-1 border rounded"
+                    placeholder="Enter new body"
+                  />
+                  <button onClick={handleSaveEdit} className="bg-blue-500 text-white px-2 py-1 rounded">
+                    <FaRegSave size={18} className="mr-1" />
+                    Save
+                  </button>
+                </div>
+              ) : (
+                // Display Mode
+                <>
+                  <h2 className="text-xl text-blue-700 font-semibold mb-2 hover:text-blue-800 transition duration-300">
+                    {post.title}
+                  </h2>
+                  <p className="text-black">{post.body}</p>
+                </>
+              )}
             </div>
           ))}
         </div>
