@@ -1,5 +1,5 @@
 "use client";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdDelete, MdEdit, MdAdd, MdClose } from "react-icons/md";
 import { FaRegSave } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -12,6 +12,9 @@ const Blog = () => {
   const [editingPostId, setEditingPostId] = useState(null);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedBody, setEditedBody] = useState("");
+  const [showNewBlogForm, setShowNewBlogForm] = useState(false);
+  const [newBlogTitle, setNewBlogTitle] = useState("");
+  const [newBlogBody, setNewBlogBody] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -68,9 +71,58 @@ const Blog = () => {
     }
   };
 
+  const handleCreateNewBlog = async () => {
+    try {
+      const response = await axios.post("https://jsonplaceholder.typicode.com/posts", {
+        title: newBlogTitle,
+        body: newBlogBody,
+        userId: 1, // Assuming a static user ID for simplicity
+      });
+
+      const newPost = response.data;
+      setPosts((prevPosts) => [newPost, ...prevPosts]);
+      setNewBlogTitle("");
+      setNewBlogBody("");
+      toast.success("Blog created successfully!");
+      setShowNewBlogForm(false);
+    } catch (error) {
+      console.error("Error creating new blog:", error);
+      toast.error("Failed to create new blog.");
+    }
+  };
+
   return (
     <div className="container mx-auto mt-8">
       <ToastContainer />
+
+      <div className="mb-4 flex items-center justify-between">
+        <button onClick={() => setShowNewBlogForm(true)} className="p-2 focus:outline-none">
+          <MdAdd size={20} className="text-green-500" />
+          <h2 className="text-2xl font-bold text-center">Create a new blog</h2>
+        </button>
+        {showNewBlogForm && (
+          <div>
+            <MdClose size={20} className="text-gray-600 cursor-pointer" onClick={() => setShowNewBlogForm(false)} />
+            <input
+              type="text"
+              value={newBlogTitle}
+              onChange={(e) => setNewBlogTitle(e.target.value)}
+              className="mb-2 px-2 py-1 border rounded w-full"
+              placeholder="Blog title... "
+            />
+            <textarea
+              value={newBlogBody}
+              onChange={(e) => setNewBlogBody(e.target.value)}
+              className="mb-2 px-2 py-1 border rounded w-full"
+              placeholder="Write your blog... "
+            />
+            <button onClick={handleCreateNewBlog} className="bg-blue-500 text-white px-2 py-1 rounded">
+              <FaRegSave size={18} className="mr-1" />
+              Save
+            </button>
+          </div>
+        )}
+      </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-screen">
