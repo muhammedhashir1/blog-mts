@@ -76,7 +76,7 @@ const Blog = () => {
       const response = await axios.post("https://jsonplaceholder.typicode.com/posts", {
         title: newBlogTitle,
         body: newBlogBody,
-        userId: 1, // Assuming a static user ID for simplicity
+        userId: 1,
       });
 
       const newPost = response.data;
